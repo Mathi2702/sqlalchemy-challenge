@@ -14,14 +14,14 @@ from flask import Flask, jsonify
 ###################################################
 
 #create engine
-engine=create_engine("sqlite:///hawaii.sqlite")
+engine=create_engine("sqlite:///Resources/hawaii.sqlite")
 
 #automap base
 Base =automap_base()
 
 #reflect the tables
-Base.prepare(engine, reflect=True)
-
+Base.prepare(engine,reflect=True)
+print(Base.classes.keys())
 # Save references to each table
 measurement = Base.classes.measurement
 station = Base.classes.station
@@ -131,5 +131,50 @@ def tobs():
 
     #return the result in json 
     return jsonify(tobs)
+
+@app.route('/api/v1.0/<start>')
+def start(start):
+    """Create a query to  using a start date to calculate min, max, average.
+    To get the data in the list using the for loop."""
+    session=Session(engine)
+    querytobs_calc = session.query(measurement.station,func.min(measurement.tobs), func.max(measurement.tobs),func.avg(measurement.tobs)).\
+                 filter(measurement.date>=start).all()
+    session.close()
+
+    tob = []
+    for min,max,avg in querytobs_calc:
+        tobs_dict={}
+        tobs_dict["Min"] = min
+        tobs_dict["Max"] = max
+        tobs_dict["Avg"] = avg
+        tob.append(tobs_dict)
+
+    #return the result in json 
+    return jsonify(tob)
+@app.route('/api/v1.0/<start>/<end>')
+def startstop(start,stop):
+     """Create a query to  using a start date to calculate min, max, average.
+     To get the data in the list using the for loop."""
+     session=Session(engine)
+     querytobs_calc = session.query(measurement.station,func.min(measurement.tobs), func.max(measurement.tobs),func.avg(measurement.tobs)).\
+                 filter(measurement.date>=start).all()
+     session.close()
+     tob = []
+     for min,max,avg in querytobs_calc:
+        tobs_dict={}
+        tobs_dict["Min"] = min
+        tobs_dict["Max"] = max
+        tobs_dict["Avg"] = avg
+        tob.append(tobs_dict)
+
+     #return the result in json 
+     return jsonify(tob)
+
+if __name__ == "__main__":
+    app.run(debug=True)
+    
+    
+
+
 
     
